@@ -10,3 +10,64 @@ body {
   height: 100vh;
   width: 100%;
 }
+
+#ui-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 260px;
+  height: 100vh;
+  background: #ffffff;
+  padding: 16px;
+  z-index: 1000;
+  box-shadow: -2px 0 6px rgba(0, 0, 0, 0.15);
+  font-family: system-ui, sans-serif;
+}
+
+#ui-panel h2 {
+  margin-top: 0;
+  font-size: 1.2rem;
+}
+
+#ui-panel h3 {
+  margin-bottom: 8px;
+  font-size: 1rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  gap: 10px;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.sector-a {
+  background: #8e44ad;
+}
+
+.sector-b {
+  background: #c0392b;
+}
+
+.legend-line {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+
+  border-radius: 2px;
+  border-style: dashed;
+  border-color: #34495e;
+}
+
+.layers label {
+  font-size: 0.9rem;
+  cursor: pointer;
+}
