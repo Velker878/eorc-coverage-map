@@ -16,7 +16,6 @@ let wardsLayer;
 
 (async () => {
   const centreGeoJSON = await loadCentreSectors(map);
-
   wardsLayer = await loadWards(map, centreGeoJSON);
 
   const toggle = document.getElementById("toggle-wards");
@@ -28,5 +27,12 @@ let wardsLayer;
       if (wardsLayer) map.removeLayer(wardsLayer);
       map.closePopup();
     }
+  });
+
+  const panel = document.getElementById("ui-panel");
+  const header = panel.querySelector(".panel-header");
+
+  header.addEventListener("click", () => {
+    panel.classList.toggle("open");
   });
 })();

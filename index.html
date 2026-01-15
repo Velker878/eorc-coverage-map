@@ -15,35 +15,38 @@
   </head>
   <body>
     <div id="ui-panel">
-      <h2>EORC Coverage Map</h2>
+      <div class="panel-header">
+        <h2>EORC Coverage Map</h2>
+        <svg class="chevron" viewBox="0 0 24 24" width="24" height="24">
+          <path d="M7 14l5-5 5 5z" />
+        </svg>
+      </div>
 
-      <section class="legend">
-        <h3>Legend</h3>
+      <div class="panel-content">
+        <section class="legend">
+          <h3>Legend</h3>
+          <div class="legend-item">
+            <span class="legend-color sector-a"></span>
+            <span>Eastern Ottawa Resource Centre</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color sector-b"></span>
+            <span>Orléans-Cumberland CRC</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-line ward-line"></span>
+            <span>Wards (within sectors)</span>
+          </div>
+        </section>
 
-        <div class="legend-item">
-          <span class="legend-color sector-a"></span>
-          <span>Eastern Ottawa Resource Centre</span>
-        </div>
-
-        <div class="legend-item">
-          <span class="legend-color sector-b"></span>
-          <span>Orléans-Cumberland Community Resource Centre</span>
-        </div>
-
-        <div class="legend-item">
-          <span class="legend-line ward-line"></span>
-          <span>Wards (within sectors)</span>
-        </div>
-      </section>
-
-      <section class="layers">
-        <h3>Layers</h3>
-
-        <label>
-          <input type="checkbox" id="toggle-wards" checked />
-          Show wards
-        </label>
-      </section>
+        <section class="layers">
+          <h3>Layers</h3>
+          <label>
+            <input type="checkbox" id="toggle-wards" checked />
+            Show wards
+          </label>
+        </section>
+      </div>
     </div>
 
     <div id="map"></div>
