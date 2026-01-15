@@ -12,7 +12,6 @@ map.getPane("sectorsPane").style.zIndex = 400;
 
 map.createPane("wardsPane");
 map.getPane("wardsPane").style.zIndex = 500;
-
 let wardsLayer;
 
 (async () => {
@@ -24,9 +23,10 @@ let wardsLayer;
 
   toggle.addEventListener("change", () => {
     if (toggle.checked) {
-      map.addLayer(wardsLayer);
+      if (wardsLayer) map.addLayer(wardsLayer);
     } else {
-      map.removeLayer(wardsLayer);
+      if (wardsLayer) map.removeLayer(wardsLayer);
+      map.closePopup();
     }
   });
 })();

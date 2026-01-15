@@ -1,3 +1,5 @@
+import { loadCentreSectors } from "./centres.js";
+
 export async function loadWards(map, centreRegionsGeoJSON) {
   const wardsResponse = await fetch("src/data/ottawa_wards.geojson");
   const wardsData = await wardsResponse.json();
@@ -7,10 +9,12 @@ export async function loadWards(map, centreRegionsGeoJSON) {
   wardsData.features.forEach((ward) => {
     centreRegionsGeoJSON.features.forEach((region) => {
       const intersection = turf.intersect(ward, region);
+
       if (intersection) {
         intersection.properties = {
           ...ward.properties,
-          region_name: region.properties.region_name,
+          _sectorName: region.properties.sector,
+          _sectorServices: region.properties.services,
         };
         clippedFeatures.push(intersection);
       }
@@ -33,23 +37,48 @@ function wardStyle() {
   return {
     color: "#5d5d5d",
     weight: 1,
-    fillOpacity: 0.1,
+    fillOpacity: 0.05,
     dashArray: "3",
   };
 }
 
 function wardInteractions(feature, layer) {
-  const wardLabel =
-    feature.properties.WARD_NAME ||
-    feature.properties.WARD ||
-    feature.properties.ward;
+  const wardID = feature.properties.WARD;
+  const wardName = feature.properties.NAME;
+  const sectorName = feature.properties._sectorName;
+  const services = feature.properties._sectorServices;
 
-  layer.bindTooltip(`Ward ${wardLabel}`, { sticky: true });
+  const tooltipContent = `Ward ${wardID}: ${wardName}`;
+
+  layer.bindTooltip(tooltipContent, { sticky: true });
+
+  const popupContent = `
+    <div>
+      <h4>${sectorName ? sectorName.toUpperCase() : "SECTOR"}</h4>
+      <p><strong>Services:</strong> ${services}</p>
+      <div class="meta-info">
+        Intersects with <strong>Ward ${wardID} (${wardName})</strong>
+      </div>
+    </div>
+  `;
+
+  layer.bindPopup(popupContent);
+
+  layer.on("popupopen", () => {
+    layer.unbindTooltip();
+  });
+
+  layer.on("popupclose", () => {
+    layer.bindTooltip(tooltipContent, { sticky: true });
+  });
 
   layer.on({
-    mouseover: () =>
-      layer.setStyle({ color: "#363636", weight: 2, fillOpacity: 0.55 }),
-    mouseout: () =>
-      layer.setStyle({ color: "#5d5d5d", weight: 1, fillOpacity: 0.1 }),
+    mouseover: () => {
+      layer.setStyle({ color: "#363636", weight: 2, fillOpacity: 0.3 });
+      layer.bringToFront();
+    },
+    mouseout: () => {
+      layer.setStyle({ color: "#5d5d5d", weight: 1, fillOpacity: 0.05 });
+    },
   });
 }

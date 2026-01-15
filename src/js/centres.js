@@ -18,21 +18,39 @@ function centreStyle(feature) {
   };
 
   return {
-    color: colors[feature.properties.sector],
-    weight: 4,
+    color: colors[feature.properties.sector] || "#cccccc",
+    weight: 2,
     fillOpacity: 0.5,
   };
 }
 
 function centreInteractions(feature, layer) {
-  layer.bindTooltip(
-    `<strong>${feature.properties.sector}</strong><br/>
-     ${feature.properties.services}`,
-    { sticky: true }
-  );
+  const sectorName = feature.properties.sector;
+  const services = feature.properties.services;
+
+  const tooltipContent = `<strong>${sectorName}</strong>`;
+
+  layer.bindTooltip(tooltipContent, { sticky: true });
+
+  const popupContent = `
+    <div>
+      <h4>${sectorName.toUpperCase()}</h4>
+      <p><strong>Services:</strong> ${services}</p>
+    </div>
+  `;
+
+  layer.bindPopup(popupContent);
+
+  layer.on("popupopen", () => {
+    layer.unbindTooltip();
+  });
+
+  layer.on("popupclose", () => {
+    layer.bindTooltip(tooltipContent, { sticky: true });
+  });
 
   layer.on({
     mouseover: () => layer.setStyle({ fillOpacity: 0.65 }),
-    mouseout: () => layer.setStyle({ fillOpacity: 0.45 }),
+    mouseout: () => layer.setStyle({ fillOpacity: 0.5 }),
   });
 }
