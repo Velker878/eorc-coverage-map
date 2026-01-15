@@ -50,3 +50,7 @@ Because this project uses ES modules and local GeoJSON files, it must be run thr
 2. Install the **Live Server** extension
 3. Right-click `index.html` → **Open with Live Server**
 
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
