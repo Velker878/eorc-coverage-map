@@ -32,23 +32,6 @@ function centreInteractions(feature, layer) {
 
   layer.bindTooltip(tooltipContent, { sticky: true });
 
-  const popupContent = `
-    <div>
-      <h4>${sectorName.toUpperCase()}</h4>
-      <p><strong>Services:</strong> ${services}</p>
-    </div>
-  `;
-
-  layer.bindPopup(popupContent);
-
-  layer.on("popupopen", () => {
-    layer.unbindTooltip();
-  });
-
-  layer.on("popupclose", () => {
-    layer.bindTooltip(tooltipContent, { sticky: true });
-  });
-
   layer.on({
     mouseover: () => layer.setStyle({ fillOpacity: 0.65 }),
     mouseout: () => layer.setStyle({ fillOpacity: 0.5 }),

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -35,8 +35,23 @@
             <span>Orléans-Cumberland CRC</span>
           </div>
           <div class="legend-item">
+            <span
+              class="legend-color"
+              style="
+                background: repeating-linear-gradient(
+                  45deg,
+                  #2e92cc,
+                  #2e92cc 2px,
+                  #fff 2px,
+                  #fff 6px
+                );
+              "
+            ></span>
+            <span>Electoral Ridings</span>
+          </div>
+          <div class="legend-item">
             <span class="legend-line ward-line"></span>
-            <span>Wards (within sectors)</span>
+            <span>Wards</span>
           </div>
         </section>
 
@@ -45,6 +60,10 @@
           <label>
             <input type="checkbox" id="toggle-wards" checked />
             Show wards
+          </label>
+          <label>
+            <input type="checkbox" id="toggle-districts" checked />
+            Show electoral ridings
           </label>
         </section>
       </div>
