@@ -25,13 +25,6 @@ function centreStyle(feature) {
 }
 
 function centreInteractions(feature, layer) {
-  const sectorName = feature.properties.sector;
-  const services = feature.properties.services;
-
-  const tooltipContent = `<strong>${sectorName}</strong>`;
-
-  layer.bindTooltip(tooltipContent, { sticky: true });
-
   layer.on({
     mouseover: () => layer.setStyle({ fillOpacity: 0.35 }),
     mouseout: () => layer.setStyle({ fillOpacity: 0.3 }),
