@@ -32,10 +32,10 @@ export async function loadWards(map, centreRegionsGeoJSON) {
 
 function wardStyle() {
   return {
-    color: "#5d5d5d",
+    color: "#7a7a7a",
     weight: 1,
     fillColor: "#ffffff",
-    fillOpacity: 0.1,
-    dashArray: "3",
+    fillOpacity: 0,
+    dashArray: "6",
   };
 }

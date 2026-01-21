@@ -13,14 +13,14 @@ export async function loadCentreSectors(map) {
 
 function centreStyle(feature) {
   const colors = {
-    "eorc - css": "#db6e6e",
-    eorc: "#ad72db",
+    "eorc - css": "#c45f5f",
+    eorc: "#9762c0",
   };
 
   return {
     color: colors[feature.properties.sector] || "#cccccc",
-    weight: 2,
-    fillOpacity: 0.5,
+    weight: 4,
+    fillOpacity: 0.3,
   };
 }
 
@@ -33,7 +33,7 @@ function centreInteractions(feature, layer) {
   layer.bindTooltip(tooltipContent, { sticky: true });
 
   layer.on({
-    mouseover: () => layer.setStyle({ fillOpacity: 0.65 }),
-    mouseout: () => layer.setStyle({ fillOpacity: 0.5 }),
+    mouseover: () => layer.setStyle({ fillOpacity: 0.35 }),
+    mouseout: () => layer.setStyle({ fillOpacity: 0.3 }),
   });
 }

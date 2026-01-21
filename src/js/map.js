@@ -16,11 +16,11 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 map.createPane("sectorsPane");
 map.getPane("sectorsPane").style.zIndex = 400;
 
-map.createPane("wardsPane");
-map.getPane("wardsPane").style.zIndex = 450;
-
 map.createPane("districtsPane");
-map.getPane("districtsPane").style.zIndex = 500;
+map.getPane("districtsPane").style.zIndex = 450;
+
+map.createPane("wardsPane");
+map.getPane("wardsPane").style.zIndex = 500;
 
 map.whenReady(() => {
   const renderer = map.getRenderer(map);
@@ -41,7 +41,7 @@ map.whenReady(() => {
     line.setAttribute("y1", "0");
     line.setAttribute("x2", "0");
     line.setAttribute("y2", "8");
-    line.setAttribute("stroke", "#2e92cc");
+    line.setAttribute("stroke", "#7a7a7a");
     line.setAttribute("stroke-width", "1");
 
     pattern.appendChild(line);
@@ -89,8 +89,6 @@ let highlightedLayers = [];
 
 // Interaction Handlers
 
-// --- Interaction Handlers ---
-
 function getFeaturesAtPoint(latlng) {
   if (!centreGeoJSON) return {};
   const point = turf.point([latlng.lng, latlng.lat]);
@@ -99,22 +97,18 @@ function getFeaturesAtPoint(latlng) {
   let ward = null;
   let district = null;
 
-  // 1. Check Sector (Base Layer)
   centreGeoJSON.features.forEach((f) => {
     if (turf.booleanPointInPolygon(point, f)) sector = f.properties;
   });
 
-  // 2. Check Ward (Only if visible)
   if (wardsLayer && map.hasLayer(wardsLayer)) {
     wardsLayer.eachLayer((l) => {
-      // Ensure layer has geometry (feature) before checking
       if (l.feature && turf.booleanPointInPolygon(point, l.feature)) {
         ward = { props: l.feature.properties, layer: l };
       }
     });
   }
 
-  // 3. Check District (Only if visible)
   if (districtLayer && map.hasLayer(districtLayer)) {
     districtLayer.eachLayer((l) => {
       if (l.feature && turf.booleanPointInPolygon(point, l.feature)) {
@@ -126,7 +120,7 @@ function getFeaturesAtPoint(latlng) {
   return { sector, ward, district };
 }
 
-// CLICK: Show Popup
+// Click effects
 map.on("click", (e) => {
   const { sector, ward, district } = getFeaturesAtPoint(e.latlng);
 
@@ -170,36 +164,33 @@ map.on("click", (e) => {
   L.popup().setLatLng(e.latlng).setContent(content).openOn(map);
 });
 
-// MOUSEMOVE: Robust Hover Effects
+// Hover effects
 map.on("mousemove", (e) => {
-  // A. RESET PREVIOUS HIGHLIGHTS
-  // We loop through anything currently highlighted and restore it
   if (highlightedLayers.length > 0) {
     highlightedLayers.forEach((layer) => {
-      // Reset to the style we saved in _originalStyle
       if (layer._originalStyle) {
         layer.setStyle(layer._originalStyle);
-        delete layer._originalStyle; // Clear the saved style so we don't stale it
+        delete layer._originalStyle;
       }
     });
-    highlightedLayers = []; // Empty the tracker
+    highlightedLayers = [];
   }
 
-  // B. FIND NEW TARGETS
   const { ward, district } = getFeaturesAtPoint(e.latlng);
-
-  // C. APPLY NEW HIGHLIGHTS
 
   // Highlight Ward
   if (ward) {
     const layer = ward.layer;
-    // Save current style before changing it (if not already saved)
     if (!layer._originalStyle) {
-      // We accept either the current options or the function result
       layer._originalStyle = { ...layer.options };
     }
 
-    layer.setStyle({ fillOpacity: 0.4, color: "#222", weight: 2 });
+    layer.setStyle({
+      color: "#363636",
+      weight: 1.3,
+      fillColor: "url(#diagonalHatch)",
+      fillOpacity: 1.0,
+    });
     highlightedLayers.push(layer);
   }
 
@@ -210,9 +201,12 @@ map.on("mousemove", (e) => {
       layer._originalStyle = { ...layer.options };
     }
 
-    // Important: For hatched patterns, we ONLY change weight/color,
-    // we must NOT touch fillOpacity or fillColor or the pattern disappears.
-    layer.setStyle({ weight: 3, color: "#165a85" });
+    layer.setStyle({
+      color: "#2e539c",
+      weight: 1.7,
+      fillOpacity: 0.35,
+      fillColor: "#d5ecfc",
+    });
     highlightedLayers.push(layer);
   }
 });

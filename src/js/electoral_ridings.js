@@ -2,11 +2,10 @@
 
 function districtStyle() {
   return {
-    color: "#2e92cc",
-    weight: 1.5,
-    fill: true,
-    fillColor: "url(#diagonalHatch)",
-    fillOpacity: 1.0,
+    color: "#667ab3",
+    weight: 1.4,
+    fillColor: "#afbad9",
+    fillOpacity: 0,
   };
 }
 
