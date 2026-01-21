@@ -2,6 +2,11 @@ import { loadCentreSectors } from "./centres.js";
 import { loadWards } from "./wards.js";
 import { loadElectoralDistricts } from "./electoral_ridings.js";
 
+const sectorColors = {
+  "EORC (CSS)": "#c45f5f",
+  EORC: "#9762c0",
+};
+
 const map = L.map("map", {
   renderer: L.svg(),
   zoomControl: false,
@@ -129,38 +134,54 @@ map.on("click", (e) => {
   let content = '<div class="custom-popup">';
 
   if (sector) {
+    const titleColor = sectorColors[sector.sector] || "#8e44ad"; // fallback
+
     content += `
-      <h4 style="border-bottom: 2px solid #8e44ad; padding-bottom: 4px; margin-bottom: 8px;">${sector.sector}</h4>
-      <p><strong>Services:</strong> ${sector.services}</p>
+      <h4 
+        class="popup-title"
+        style="border-bottom: 2px solid ${titleColor};"
+      >
+        ${sector.sector}
+      </h4>
+      <p><strong>Services offered:</strong> ${sector.services}</p>
     `;
   }
 
   if (ward) {
+    const props = ward.props;
+    const wardName = props.NAME || "Error fetching name";
+    const councillorName = props.COUNCILLOR || "Error fetching name";
+
     content += `
-      <div class="meta-info" style="margin-top:8px; border-top:1px solid #ccc; padding-top:4px;">
-        <strong style="color:#34495e;">Ward ${ward.props.WARD || "?"}</strong>: ${ward.props.NAME || "Unknown"}
+      <div class="meta-info">
+        <strong class="info-title">Ward:</strong><br/>
+        ${wardName}
+        <div class="district-people">
+          <strong>Councillor:</strong> ${councillorName}<br/>
+        </div>
       </div>
     `;
   }
 
   if (district) {
     const props = district.props;
-    const mpName = props.MP_Name || props.MP || "TBD";
-    const mppName = props.MPP_Name || props.MPP || "TBD";
+    const mpName = props.MP || "Error fetching name";
+    const mppName = props.MPP || "Error fetching name";
 
     content += `
-      <div class="meta-info" style="margin-top:8px; border-top:1px solid #ccc; padding-top:4px;">
-        <strong style="color:#2980b9;">Federal Riding</strong><br/>
-        ${props.ENGLISH_NA || props.Name || "District"}<br/>
-        <span style="font-size:0.9em; display:block; margin-top:4px;">
+      <div class="meta-info">
+        <strong class="info-title">Electoral Riding:</strong><br/>
+        ${props.ENGLISH_NA || props.Name || "District"}
+        <div class="district-people">
           <strong>MP:</strong> ${mpName}<br/>
           <strong>MPP:</strong> ${mppName}
-        </span>
+        </div>
       </div>
     `;
   }
 
   content += "</div>";
+
   L.popup().setLatLng(e.latlng).setContent(content).openOn(map);
 });
 

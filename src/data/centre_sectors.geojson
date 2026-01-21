@@ -4,7 +4,7 @@
     {
       "type": "Feature",
       "properties": {
-        "sector": "eorc - css",
+        "sector": "EORC (CSS)",
         "services": "Community Support Services"
       },
       "geometry": {
@@ -62,7 +62,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "sector": "eorc", "services": "All" },
+      "properties": { "sector": "EORC", "services": "All" },
       "geometry": {
         "coordinates": [
           [

@@ -13,8 +13,8 @@ export async function loadCentreSectors(map) {
 
 function centreStyle(feature) {
   const colors = {
-    "eorc - css": "#c45f5f",
-    eorc: "#9762c0",
+    "EORC (CSS)": "#c45f5f",
+    EORC: "#9762c0",
   };
 
   return {
