@@ -27,14 +27,21 @@ export async function loadWards(map, centreRegionsGeoJSON) {
   return L.geoJSON(clippedWards, {
     pane: "wardsPane",
     style: wardStyle,
-  }).addTo(map);
+    onEachFeature: (feature, layer) => {
+      layer.on("add", () => {
+        if (layer._path) {
+          layer._path.setAttribute("fill", "none");
+          layer._path.setAttribute("fill-opacity", "0");
+        }
+      });
+    },
+  });
 }
 
 function wardStyle() {
   return {
     color: "#7a7a7a",
     weight: 1,
-    fillColor: "#ffffff",
     fillOpacity: 0,
     dashArray: "6",
   };

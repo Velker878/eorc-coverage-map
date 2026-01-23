@@ -1,10 +1,11 @@
 import { loadCentreSectors } from "./centres.js";
 import { loadWards } from "./wards.js";
 import { loadElectoralDistricts } from "./electoral_ridings.js";
+import { loadNeighbourhoods } from "./neighbourhoods.js";
 
 const sectorColors = {
-  "EORC (CSS)": "#c45f5f",
-  EORC: "#9762c0",
+  "EORC (CSS)": "#cc5a4d",
+  EORC: "#965bb0",
 };
 
 const map = L.map("map", {
@@ -24,22 +25,31 @@ map.getPane("sectorsPane").style.zIndex = 400;
 map.createPane("districtsPane");
 map.getPane("districtsPane").style.zIndex = 450;
 
+map.createPane("neighbourhoodsPane");
+map.getPane("neighbourhoodsPane").style.zIndex = 450;
+
 map.createPane("wardsPane");
-map.getPane("wardsPane").style.zIndex = 500;
+map.getPane("wardsPane").style.zIndex = 650;
 
 map.whenReady(() => {
   const renderer = map.getRenderer(map);
   const svg = renderer._container;
+  if (!svg) return;
 
-  if (svg) {
-    const defs = L.SVG.create("defs");
-    const pattern = L.SVG.create("pattern");
+  let defs = svg.querySelector("defs");
+  if (!defs) {
+    defs = L.SVG.create("defs");
+    svg.appendChild(defs);
+  }
 
-    pattern.setAttribute("id", "diagonalHatch");
-    pattern.setAttribute("patternUnits", "userSpaceOnUse");
-    pattern.setAttribute("width", "8");
-    pattern.setAttribute("height", "8");
-    pattern.setAttribute("patternTransform", "rotate(45)");
+  // Diagonal hatch pattern
+  if (!svg.querySelector("#diagonalHatch")) {
+    const hatch = L.SVG.create("pattern");
+    hatch.setAttribute("id", "diagonalHatch");
+    hatch.setAttribute("patternUnits", "userSpaceOnUse");
+    hatch.setAttribute("width", "8");
+    hatch.setAttribute("height", "8");
+    hatch.setAttribute("patternTransform", "rotate(45)");
 
     const line = L.SVG.create("line");
     line.setAttribute("x1", "0");
@@ -49,21 +59,40 @@ map.whenReady(() => {
     line.setAttribute("stroke", "#7a7a7a");
     line.setAttribute("stroke-width", "1");
 
-    pattern.appendChild(line);
-    defs.appendChild(pattern);
-    svg.appendChild(defs);
+    hatch.appendChild(line);
+    defs.appendChild(hatch);
+  }
+
+  // Dot matrix pattern
+  if (!svg.querySelector("#dotPattern")) {
+    const dots = L.SVG.create("pattern");
+    dots.setAttribute("id", "dotPattern");
+    dots.setAttribute("patternUnits", "userSpaceOnUse");
+    dots.setAttribute("width", "6");
+    dots.setAttribute("height", "6");
+
+    const dot = L.SVG.create("circle");
+    dot.setAttribute("cx", "3");
+    dot.setAttribute("cy", "3");
+    dot.setAttribute("r", "0.8");
+    dot.setAttribute("fill", "#cc0000");
+
+    dots.appendChild(dot);
+    defs.appendChild(dots);
   }
 });
 
 let centreGeoJSON;
 let wardsLayer;
 let districtLayer;
+let neighbourhoodLayer;
 let highlightedLayers = [];
 
 (async () => {
   centreGeoJSON = await loadCentreSectors(map);
   wardsLayer = await loadWards(map, centreGeoJSON);
-  districtLayer = await loadElectoralDistricts(map, centreGeoJSON);
+  districtLayer = await loadElectoralDistricts(centreGeoJSON);
+  neighbourhoodLayer = await loadNeighbourhoods(centreGeoJSON);
 
   if (document.getElementById("toggle-wards")?.checked) {
     wardsLayer.addTo(map);
@@ -73,16 +102,31 @@ let highlightedLayers = [];
     districtLayer.addTo(map);
   }
 
+  if (document.getElementById("toggle-neighbourhoods")?.checked) {
+    neighbourhoodLayer.addTo(map);
+  }
+
   document.getElementById("toggle-wards").addEventListener("change", (e) => {
+    clearHighlights();
     e.target.checked ? map.addLayer(wardsLayer) : map.removeLayer(wardsLayer);
   });
 
   document
     .getElementById("toggle-districts")
     .addEventListener("change", (e) => {
+      clearHighlights();
       e.target.checked
         ? map.addLayer(districtLayer)
         : map.removeLayer(districtLayer);
+    });
+
+  document
+    .getElementById("toggle-neighbourhoods")
+    .addEventListener("change", (e) => {
+      clearHighlights();
+      e.target.checked
+        ? map.addLayer(neighbourhoodLayer)
+        : map.removeLayer(neighbourhoodLayer);
     });
 
   // Mobile panel toggle
@@ -101,6 +145,7 @@ function getFeaturesAtPoint(latlng) {
   let sector = null;
   let ward = null;
   let district = null;
+  let neighbourhood = null;
 
   centreGeoJSON.features.forEach((f) => {
     if (turf.booleanPointInPolygon(point, f)) sector = f.properties;
@@ -122,19 +167,49 @@ function getFeaturesAtPoint(latlng) {
     });
   }
 
-  return { sector, ward, district };
+  if (neighbourhoodLayer && map.hasLayer(neighbourhoodLayer)) {
+    neighbourhoodLayer.eachLayer((l) => {
+      if (l.feature && turf.booleanPointInPolygon(point, l.feature)) {
+        neighbourhood = { props: l.feature.properties, layer: l };
+      }
+    });
+  }
+
+  return { sector, ward, district, neighbourhood };
+}
+
+function clearHighlights() {
+  highlightedLayers.forEach((layer) => {
+    if (!layer._originalStyle) return;
+
+    layer.setStyle(layer._originalStyle.options);
+
+    if (layer._path) {
+      layer._path.setAttribute("fill", layer._originalStyle.fill ?? "none");
+      layer._path.setAttribute(
+        "fill-opacity",
+        layer._originalStyle.fillOpacity ?? 0,
+      );
+    }
+
+    delete layer._originalStyle;
+  });
+
+  highlightedLayers = [];
 }
 
 // Click effects
 map.on("click", (e) => {
-  const { sector, ward, district } = getFeaturesAtPoint(e.latlng);
+  const { sector, ward, district, neighbourhood } = getFeaturesAtPoint(
+    e.latlng,
+  );
 
-  if (!sector && !ward && !district) return;
+  if (!sector && !ward && !district && !neighbourhood) return;
 
   let content = '<div class="custom-popup">';
 
   if (sector) {
-    const titleColor = sectorColors[sector.sector] || "#8e44ad"; // fallback
+    const titleColor = sectorColors[sector.sector] || "#8e44ad";
 
     content += `
       <h4 
@@ -144,6 +219,19 @@ map.on("click", (e) => {
         ${sector.sector}
       </h4>
       <p><strong>Services offered:</strong> ${sector.services}</p>
+    `;
+  }
+
+  if (neighbourhood) {
+    const props = neighbourhood.props;
+    const neighbourhoodName =
+      props.neighbourhoodFormatted || props.ONS_Name || "Error fetching name";
+
+    content += `
+      <div class="meta-info">
+        <strong class="info-title">Neighbourhood:</strong><br/>
+        ${neighbourhoodName}
+      </div>
     `;
   }
 
@@ -171,7 +259,7 @@ map.on("click", (e) => {
     content += `
       <div class="meta-info">
         <strong class="info-title">Electoral Riding:</strong><br/>
-        ${props.ENGLISH_NA || props.Name || "District"}
+        ${props.ENGLISH_NA || "District"}
         <div class="district-people">
           <strong>MP:</strong> ${mpName}<br/>
           <strong>MPP:</strong> ${mppName}
@@ -187,47 +275,64 @@ map.on("click", (e) => {
 
 // Hover effects
 map.on("mousemove", (e) => {
-  if (highlightedLayers.length > 0) {
-    highlightedLayers.forEach((layer) => {
-      if (layer._originalStyle) {
-        layer.setStyle(layer._originalStyle);
-        delete layer._originalStyle;
-      }
-    });
-    highlightedLayers = [];
-  }
+  highlightedLayers.forEach((layer) => {
+    if (!layer._originalStyle) return;
 
-  const { ward, district } = getFeaturesAtPoint(e.latlng);
+    layer.setStyle(layer._originalStyle.options);
 
-  // Highlight Ward
-  if (ward) {
-    const layer = ward.layer;
-    if (!layer._originalStyle) {
-      layer._originalStyle = { ...layer.options };
+    if (layer._path && layer._originalStyle.fill) {
+      layer._path.setAttribute("fill", layer._originalStyle.fill);
+      layer._path.setAttribute(
+        "fill-opacity",
+        layer._originalStyle.fillOpacity ?? 1,
+      );
     }
 
-    layer.setStyle({
-      color: "#363636",
-      weight: 1.3,
-      fillColor: "url(#diagonalHatch)",
-      fillOpacity: 1.0,
-    });
+    delete layer._originalStyle;
+  });
+  highlightedLayers = [];
+
+  const { ward, district, neighbourhood } = getFeaturesAtPoint(e.latlng);
+
+  const highlight = (obj, fn) => {
+    if (!obj) return;
+    const layer = obj.layer;
+
+    if (!layer._originalStyle) {
+      layer._originalStyle = {
+        options: { ...layer.options },
+        fill: layer._path?.getAttribute("fill"),
+        fillOpacity: layer._path?.getAttribute("fill-opacity"),
+      };
+    }
+
+    fn(layer);
     highlightedLayers.push(layer);
-  }
+  };
 
-  // Highlight District
-  if (district) {
-    const layer = district.layer;
-    if (!layer._originalStyle) {
-      layer._originalStyle = { ...layer.options };
-    }
+  highlight(ward, (layer) => {
+    layer.setStyle({ color: "#363636", weight: 1.3, fillOpacity: 1 });
+    layer._path.setAttribute("fill", "url(#diagonalHatch)");
+  });
 
+  highlight(district, (layer) => {
     layer.setStyle({
       color: "#2e539c",
       weight: 1.7,
-      fillOpacity: 0.35,
       fillColor: "#d5ecfc",
+      fillOpacity: 0.35,
     });
-    highlightedLayers.push(layer);
-  }
+  });
+
+  highlight(neighbourhood, (layer) => {
+    layer.setStyle({
+      color: "#cc00007a",
+      weight: 1.4,
+      fillOpacity: 0.5,
+    });
+
+    if (layer._path) {
+      layer._path.setAttribute("fill", "url(#dotPattern)");
+    }
+  });
 });

@@ -1,15 +1,4 @@
-// src/js/electoral_ridings.js
-
-function districtStyle() {
-  return {
-    color: "#667ab3",
-    weight: 1.4,
-    fillColor: "#afbad9",
-    fillOpacity: 0,
-  };
-}
-
-export async function loadElectoralDistricts(map, centreRegionsGeoJSON) {
+export async function loadElectoralDistricts(centreRegionsGeoJSON) {
   const response = await fetch("src/data/electoral_district.geojson");
   const rawData = await response.json();
 
@@ -46,4 +35,13 @@ export async function loadElectoralDistricts(map, centreRegionsGeoJSON) {
     pane: "districtsPane",
     style: districtStyle,
   });
+}
+
+function districtStyle() {
+  return {
+    color: "#667bb3b2",
+    weight: 1.4,
+    fillColor: "#d5ecfc",
+    fillOpacity: 0,
+  };
 }
